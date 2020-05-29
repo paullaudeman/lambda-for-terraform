@@ -1,0 +1,34 @@
+swagger: '2.0'
+info:
+  version: '1.0'
+  title: "Terraform File Processor"
+schemes:
+  - https
+paths:
+  "/api":
+    get:
+      description: "Read files from an S3 bucket and upload them to a DynamoDB table."
+      produces:
+        - application/json
+      responses:
+        200:
+          description: "The request was successful."
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/File"
+      x-amazon-apigateway-integration:
+        uri: ${get_lambda_arn}
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "aws_proxy"
+
+definitions:
+  File:
+    type: object
+    description: "A file to be processed"
+    properties:
+      name:
+        type: string
+        description: "The file name"
+
