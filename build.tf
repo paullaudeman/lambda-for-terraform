@@ -20,14 +20,18 @@ resource "aws_lambda_function" "lambda-function" {
   handler = "app.lambda_handler"
   runtime = "python3.8"
 
-  role = aws_iam_role.lambda_exec.arn
+  role = aws_iam_role.lambda_exec_role.arn
 }
 
 
 #
-# IAM policy defintion
+# IAM 
+#
 
-resource "aws_iam_role" "lambda_exec" {
+#
+# roles
+
+resource "aws_iam_role" "lambda_exec_role" {
   name = "iam_for_lambda"
 
   assume_role_policy = <<EOF
@@ -47,6 +51,32 @@ resource "aws_iam_role" "lambda_exec" {
 EOF
 }
 
+
+#
+# policies
+
+resource "aws_iam_policy" "s3-inbound-bucket-policy" {
+  name = "s3_inbound_bucket_policy"
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": [
+          "s3:*"
+        ],
+        "Resource": "arn:aws:s3:::*"
+      }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "inbound-bucket-policy-attach" {
+  role       = aws_iam_role.lambda_exec_role.name
+  policy_arn = aws_iam_policy.s3-inbound-bucket-policy.arn
+}
 
 
 #

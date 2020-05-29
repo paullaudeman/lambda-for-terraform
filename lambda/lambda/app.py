@@ -30,7 +30,7 @@ def lambda_handler(event, context):
     files = []
 
     for file_to_process in inbound_bucket.objects.all():
-        files.append({"name": file_to_process})
+        files.append({"name": file_to_process.key})
 
     return {
         "statusCode": 200,
