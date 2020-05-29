@@ -137,3 +137,44 @@ resource "aws_iam_role_policy" "dynamodb-lambda-policy"{
 }
 EOF
 }
+
+
+
+#
+# API gateway
+#
+
+resource "aws_lambda_permission" "api-gateway-invoke-get-lambda" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.lambda-function.arn
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/* portion grants access from any method on any resource
+  # within the specified API Gateway.
+  #source_arn = "${aws_api_gateway_deployment.api-gateway-deployment.execution_arn}/*/*"
+  source_arn = "${aws_api_gateway_rest_api.api-gateway.execution_arn}/*/*"
+}
+
+resource "aws_api_gateway_rest_api" "api-gateway" {
+  name        = "TerraformSampleAPI"
+  description = "API to access application"
+  body        = data.template_file.api_swagger.rendered
+}
+
+data "template_file" "api_swagger" {
+  template = "${file("swagger.yaml")}"
+
+  vars = {
+    get_lambda_arn = "${aws_lambda_function.lambda-function.invoke_arn}"
+  }
+}
+
+resource "aws_api_gateway_deployment" "api-gateway-deployment" {
+  rest_api_id = "${aws_api_gateway_rest_api.api-gateway.id}"
+  stage_name  = "default"
+}
+
+output "url" {
+  value = "${aws_api_gateway_deployment.api-gateway-deployment.invoke_url}/api"
+}
