@@ -2,9 +2,9 @@
 # provider
 
 provider "aws" {
-  region     = var.aws_region 
+  region = var.aws_region
   access_key = var.aws_access_key
-  secret_key = var.aws_secret_key 
+  secret_key = var.aws_secret_key
 }
 
 
@@ -14,7 +14,7 @@ provider "aws" {
 resource "aws_lambda_function" "lambda-function" {
   function_name = "lambda-for-terraform"
 
-  s3_bucket = var.aws_bucket_for_lambda 
+  s3_bucket = var.aws_bucket_for_lambda
   s3_key = "function.zip"
 
   handler = "app.lambda_handler"
@@ -74,7 +74,7 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "inbound-bucket-policy-attach" {
-  role       = aws_iam_role.lambda_exec_role.name
+  role = aws_iam_role.lambda_exec_role.name
   policy_arn = aws_iam_policy.s3-inbound-bucket-policy.arn
 }
 
@@ -101,11 +101,26 @@ resource "aws_dynamodb_table" "dynamodb-table" {
   name = "TerraformExample"
   read_capacity = 5
   write_capacity = 5
-  hash_key = "name"
+  hash_key = "FileId"
 
   attribute {
-      name = "name"
-      type = "S"
+    name = "FileId"
+    type = "S"
+  }
+
+  attribute {
+    name = "FileName"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name = "FileNameIndex"
+    hash_key = "FileName"
+    write_capacity = 5
+    read_capacity = 5
+    projection_type = "INCLUDE"
+    non_key_attributes = [
+      "FileId"]
   }
 
   tags = {
@@ -118,7 +133,7 @@ resource "aws_dynamodb_table" "dynamodb-table" {
 #
 # policies for dynamodb
 
-resource "aws_iam_role_policy" "dynamodb-lambda-policy"{
+resource "aws_iam_role_policy" "dynamodb-lambda-policy" {
   name = "dynamodb_lambda_policy"
   role = aws_iam_role.lambda_exec_role.id
 
@@ -139,16 +154,15 @@ EOF
 }
 
 
-
 #
 # API gateway
 #
 
 resource "aws_lambda_permission" "api-gateway-invoke-get-lambda" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
+  statement_id = "AllowAPIGatewayInvoke"
+  action = "lambda:InvokeFunction"
   function_name = aws_lambda_function.lambda-function.arn
-  principal     = "apigateway.amazonaws.com"
+  principal = "apigateway.amazonaws.com"
 
   # The /*/* portion grants access from any method on any resource
   # within the specified API Gateway.
@@ -157,9 +171,9 @@ resource "aws_lambda_permission" "api-gateway-invoke-get-lambda" {
 }
 
 resource "aws_api_gateway_rest_api" "api-gateway" {
-  name        = "TerraformSampleAPI"
+  name = "TerraformSampleAPI"
   description = "API to access application"
-  body        = data.template_file.api_swagger.rendered
+  body = data.template_file.api_swagger.rendered
 }
 
 data "template_file" "api_swagger" {
@@ -171,8 +185,8 @@ data "template_file" "api_swagger" {
 }
 
 resource "aws_api_gateway_deployment" "api-gateway-deployment" {
-  rest_api_id = "${aws_api_gateway_rest_api.api-gateway.id}"
-  stage_name  = "default"
+  rest_api_id = aws_api_gateway_rest_api.api-gateway.id
+  stage_name = "default"
 }
 
 output "url" {
