@@ -17,3 +17,7 @@ variable "aws_bucket_for_lambda" {
 variable "aws_bucket_for_files" {
  type = string
 }
+
+variable "environment" {
+ type = string
+}

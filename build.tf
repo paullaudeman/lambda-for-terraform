@@ -82,18 +82,58 @@ resource "aws_iam_role_policy_attachment" "inbound-bucket-policy-attach" {
 #
 # s3 defintion for the lambda to look for files to save to dynamodb
 
-resource "aws_s3_bucket" "b" {
+resource "aws_s3_bucket" "inbound-bucket" {
   bucket = var.aws_bucket_for_files
+  force_destroy = true
   acl = "private"
 
   tags = {
     Name = "Test bucket for terraform lambda processing"
-    Environment = "Dev"
+    Environment = var.environment
   }
 }
 
 
 #
-# dynamodb definitionn
+# dynamodb definition
+
+resource "aws_dynamodb_table" "dynamodb-table" {
+  name = "TerraformExample"
+  read_capacity = 5
+  write_capacity = 5
+  hash_key = "name"
+
+  attribute {
+      name = "name"
+      type = "S"
+  }
+
+  tags = {
+    Name = "dynamodb-files-example"
+    Environment = var.environment
+  }
+}
 
 
+#
+# policies for dynamodb
+
+resource "aws_iam_role_policy" "dynamodb-lambda-policy"{
+  name = "dynamodb_lambda_policy"
+  role = aws_iam_role.lambda_exec_role.id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:*"
+      ],
+      "Resource": "${aws_dynamodb_table.dynamodb-table.arn}"
+    }
+  ]
+}
+EOF
+}
