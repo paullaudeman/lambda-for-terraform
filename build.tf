@@ -50,9 +50,20 @@ EOF
 
 
 #
-# s3 defintion
+# s3 defintion for the lambda to look for files to save to dynamodb
+
+resource "aws_s3_bucket" "b" {
+  bucket = var.aws_bucket_for_files
+  acl = "private"
+
+  tags = {
+    Name = "Test bucket for terraform lambda processing"
+    Environment = "Dev"
+  }
+}
 
 
 #
 # dynamodb definitionn
+
 

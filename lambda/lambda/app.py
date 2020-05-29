@@ -1,6 +1,5 @@
 import json
-
-# import requests
+import boto3
 
 
 def lambda_handler(event, context):
@@ -25,18 +24,17 @@ def lambda_handler(event, context):
         Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
     """
 
-    # try:
-    #     ip = requests.get("http://checkip.amazonaws.com/")
-    # except requests.RequestException as e:
-    #     # Send some context about this error to Lambda Logs
-    #     print(e)
+    s3 = boto3.resource("s3")
+    inbound_bucket = s3.Bucket("lambda-sample-using-terraform-inbound")
 
-    #     raise e
+    files = []
+
+    for file_to_process in inbound_bucket.objects.all():
+        files.append({"name": file_to_process})
 
     return {
         "statusCode": 200,
         "body": json.dumps({
-            "message": "hello world",
-            # "location": ip.text.replace("\n", "")
+            "files": files
         }),
     }

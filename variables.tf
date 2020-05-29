@@ -13,3 +13,7 @@ variable "aws_secret_key" {
 variable "aws_bucket_for_lambda" {
  type = string
 }
+
+variable "aws_bucket_for_files" {
+ type = string
+}
