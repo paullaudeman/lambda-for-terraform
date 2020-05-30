@@ -9,7 +9,7 @@ provider "aws" {
 
 
 #
-# lambda defintion
+# lambda definition
 
 resource "aws_lambda_function" "lambda-function" {
   function_name = "lambda-for-terraform"
@@ -177,7 +177,7 @@ resource "aws_api_gateway_rest_api" "api-gateway" {
 }
 
 data "template_file" "api_swagger" {
-  template = "${file("swagger.yaml")}"
+  template = file("swagger.yaml")
 
   vars = {
     get_lambda_arn = "${aws_lambda_function.lambda-function.invoke_arn}"

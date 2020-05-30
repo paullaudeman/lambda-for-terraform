@@ -31,8 +31,8 @@ def lambda_handler(event, context):
     s3 = boto3.resource("s3")
     inbound_bucket = s3.Bucket("lambda-sample-using-terraform-inbound")
 
-    db = boto3.resource('dynamodb')
-    table = db.Table('TerraformExample')
+    db = boto3.resource("dynamodb")
+    table = db.Table("TerraformExample")
 
     files_processed_count = 0
 
@@ -43,7 +43,7 @@ def lambda_handler(event, context):
             Item={
                 "FileId": str(uuid.uuid1()),
                 "FileName": file_to_process.key,
-                "DateAdded": str(datetime.utcnow())
+                "DateAdded": str(datetime.utcnow()),
             }
         )
 
@@ -52,6 +52,4 @@ def lambda_handler(event, context):
     print(f"File(s) processed: {files_processed_count}")
     print("=== Lambda complete.")
 
-    return {
-        "statusCode": 200
-    }
+    return {"statusCode": 200}
